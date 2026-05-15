@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── DARK (default) ──────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  --canvas:    #020617;
+  --panel:     #0f172a;
+  --well:      #1e293b;
+  --line:      #1e293b;
+  --ink:       #f1f5f9;
+  --dim:       #64748b;
+  --brand-50:  #f0fdf4;
+  --brand-500: #22c55e;
+  --brand-600: #16a34a;
+  color-scheme: dark;
+}
+
+/* ── MONO ────────────────────────────────────────── */
+[data-theme="mono"] {
+  --canvas:    #0a0a0a;
+  --panel:     #141414;
+  --well:      #242424;
+  --line:      #2a2a2a;
+  --ink:       #f5f5f5;
+  --dim:       #737373;
+  --brand-50:  #fafafa;
+  --brand-500: #e5e5e5;
+  --brand-600: #d4d4d4;
+  color-scheme: dark;
+}
+
+/* ── PINK ────────────────────────────────────────── */
+[data-theme="pink"] {
+  --canvas:    #18070f;
+  --panel:     #2d0f1e;
+  --well:      #3d1528;
+  --line:      #6b2142;
+  --ink:       #fdf2f8;
+  --dim:       #f9a8d4;
+  --brand-50:  #fdf2f8;
+  --brand-500: #ec4899;
+  --brand-600: #db2777;
+  color-scheme: dark;
+}
+
+/* ── LIGHT ───────────────────────────────────────── */
+[data-theme="light"] {
+  --canvas:    #f1f5f9;
+  --panel:     #ffffff;
+  --well:      #f8fafc;
+  --line:      #e2e8f0;
+  --ink:       #0f172a;
+  --dim:       #64748b;
+  --brand-50:  #f0fdf4;
+  --brand-500: #16a34a;
+  --brand-600: #15803d;
+  color-scheme: light;
+}
+
+/* ── BASE ────────────────────────────────────────── */
+@layer base {
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  * { box-sizing: border-box; }
+}
+
+@layer utilities {
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}
