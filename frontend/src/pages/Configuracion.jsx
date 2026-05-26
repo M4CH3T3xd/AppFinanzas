@@ -1,6 +1,7 @@
 import { useTheme, THEMES } from '../context/ThemeContext'
 import { useCurrency, CURRENCIES } from '../context/CurrencyContext'
-import { Palette, DollarSign, User, RefreshCw } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
+import { Palette, DollarSign, User } from 'lucide-react'
 
 function Section({ icon: Icon, title, children }) {
   return (
@@ -16,9 +17,10 @@ function Section({ icon: Icon, title, children }) {
 
 export default function Configuracion() {
   const { theme, setTheme } = useTheme()
-  const { currency, setCurrency, rates, format: fmt } = useCurrency()
+  const { currency, setCurrency } = useCurrency()
+  const { user, isAdmin } = useAuth()
 
-  const usdRate = rates?.ARS ? (1 / rates.ARS).toFixed(6) : '—'
+  const initial = user?.email?.[0]?.toUpperCase() ?? '?'
 
   return (
     <div className="space-y-4 pb-8">
@@ -42,45 +44,39 @@ export default function Configuracion() {
         </div>
       </Section>
 
-      {/* Divisas */}
+      {/* Divisa */}
       <Section icon={DollarSign} title="Divisa">
-        <p className="text-xs text-dim">Las conversiones se actualizan cada hora usando tasas del mercado.</p>
+        <p className="text-xs text-dim">
+          Los montos se registran y muestran en la divisa seleccionada. Cambiá la divisa antes de cargar tus datos.
+        </p>
         <div className="space-y-2">
-          {CURRENCIES.map(c => {
-            let rateText = ''
-            if (c.code !== 'ARS' && rates?.ARS && rates?.[c.code]) {
-              const rate = rates[c.code] / rates.ARS
-              rateText = `1 ARS ≈ ${rate.toLocaleString('en-US', { maximumFractionDigits: 4 })} ${c.code}`
-            }
-            return (
-              <button key={c.code} onClick={() => setCurrency(c.code)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-colors text-left ${currency === c.code ? 'border-brand-500 bg-brand-500/10' : 'border-line hover:border-dim'}`}>
-                <span className="text-2xl">{c.flag}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-ink text-sm font-medium">{c.name}</p>
-                  <p className="text-dim text-xs">{c.symbol} · {c.code}{rateText ? ` · ${rateText}` : ''}</p>
-                </div>
-                {currency === c.code && <span className="text-brand-500 text-xs font-semibold">Activa</span>}
-              </button>
-            )
-          })}
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-dim">
-          <RefreshCw size={11} />
-          <span>Caché de tasas: 1 hora · Fuente: open.er-api.com</span>
+          {CURRENCIES.map(c => (
+            <button key={c.code} onClick={() => setCurrency(c.code)}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-colors text-left ${
+                currency === c.code ? 'border-brand-500 bg-brand-500/10' : 'border-line hover:border-dim'
+              }`}>
+              <span className="text-2xl">{c.flag}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-ink text-sm font-medium">{c.name}</p>
+                <p className="text-dim text-xs">{c.symbol} · {c.code}</p>
+              </div>
+              {currency === c.code && (
+                <span className="text-brand-500 text-xs font-semibold">Activa</span>
+              )}
+            </button>
+          ))}
         </div>
       </Section>
 
       {/* Perfil */}
       <Section icon={User} title="Perfil">
-        <p className="text-dim text-xs">Próximamente — foto de perfil y nombre personalizado</p>
         <div className="flex items-center gap-3 bg-well rounded-xl p-3">
           <div className="w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-500 font-bold text-lg flex-shrink-0">
-            M
+            {initial}
           </div>
           <div className="min-w-0">
-            <p className="text-ink text-sm font-medium truncate">mch501010@gmail.com</p>
-            <p className="text-dim text-xs">Administrador</p>
+            <p className="text-ink text-sm font-medium truncate">{user?.email}</p>
+            <p className="text-dim text-xs">{isAdmin ? 'Administrador' : 'Usuario'}</p>
           </div>
         </div>
       </Section>

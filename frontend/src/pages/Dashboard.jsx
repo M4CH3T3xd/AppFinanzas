@@ -7,7 +7,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { format, subDays, eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns'
 import { es } from 'date-fns/locale'
 
-function StatCard({ label, value, icon: Icon, bgClass, textClass }) {
+function StatCard({ label, value, icon: Icon, bgClass, textClass, sub }) {
   const { format: fmt } = useCurrency()
   return (
     <div className="bg-panel rounded-2xl p-4 flex items-center gap-3">
@@ -17,6 +17,11 @@ function StatCard({ label, value, icon: Icon, bgClass, textClass }) {
       <div className="min-w-0">
         <p className="text-dim text-xs">{label}</p>
         <p className="text-lg font-bold text-ink truncate">{fmt(value)}</p>
+        {sub != null && (
+          <p className={`text-xs ${sub >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {sub >= 0 ? '+' : ''}{fmt(sub)} vs mes ant.
+          </p>
+        )}
       </div>
     </div>
   )
@@ -39,15 +44,18 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function Dashboard() {
   const { user } = useAuth()
+  const { getCurrency } = useCurrency()
+  const cur = getCurrency()
+
   const [stats, setStats] = useState({ ingresos: 0, gastos: 0, balance: 0, deudas: 0 })
   const [chartData, setChartData] = useState([])
 
   useEffect(() => { if (user) loadData() }, [user])
 
   async function loadData() {
-    const inicio = startOfMonth(new Date()).toISOString()
-    const fin = endOfMonth(new Date()).toISOString()
-    const desde = subDays(new Date(), 29).toISOString().slice(0, 10)
+    const inicio = format(startOfMonth(new Date()), 'yyyy-MM-dd')
+    const fin    = format(endOfMonth(new Date()), 'yyyy-MM-dd')
+    const desde  = format(subDays(new Date(), 29), 'yyyy-MM-dd')
 
     const [{ data: txMes }, { data: deudas }, { data: txSerie }] = await Promise.all([
       supabase.from('transacciones').select('monto,tipo').eq('user_id', user.id).gte('fecha', inicio).lte('fecha', fin),
@@ -56,8 +64,13 @@ export default function Dashboard() {
     ])
 
     const ingresos = txMes?.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + t.monto, 0) ?? 0
-    const gastos = txMes?.filter(t => t.tipo === 'gasto').reduce((s, t) => s + t.monto, 0) ?? 0
-    setStats({ ingresos, gastos, balance: ingresos - gastos, deudas: deudas?.reduce((s, d) => s + d.monto, 0) ?? 0 })
+    const gastos   = txMes?.filter(t => t.tipo === 'gasto').reduce((s, t) => s + t.monto, 0) ?? 0
+    setStats({
+      ingresos,
+      gastos,
+      balance: ingresos - gastos,
+      deudas: deudas?.reduce((s, d) => s + d.monto, 0) ?? 0,
+    })
 
     const days = eachDayOfInterval({ start: subDays(new Date(), 29), end: new Date() })
     setChartData(days.map(day => {
@@ -66,27 +79,61 @@ export default function Dashboard() {
       return {
         fecha: format(day, 'dd/MM'),
         ingresos: dayTxs.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + t.monto, 0),
-        gastos: dayTxs.filter(t => t.tipo === 'gasto').reduce((s, t) => s + t.monto, 0),
+        gastos:   dayTxs.filter(t => t.tipo === 'gasto').reduce((s, t) => s + t.monto, 0),
       }
     }))
   }
 
+  const mesActual = format(new Date(), 'MMMM yyyy', { locale: es })
+  const greeting = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Buenos días'
+    if (h < 20) return 'Buenas tardes'
+    return 'Buenas noches'
+  })()
+
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-bold text-ink capitalize">{format(new Date(), 'MMMM yyyy', { locale: es })}</h2>
-        <p className="text-dim text-sm">Resumen del mes</p>
+
+      {/* Encabezado */}
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-dim text-sm">{greeting}</p>
+          <h2 className="text-xl font-bold text-ink capitalize">{mesActual}</h2>
+        </div>
+        <div className="flex items-center gap-1.5 bg-well px-3 py-1.5 rounded-xl text-xs text-dim">
+          <span>{cur.flag}</span>
+          <span>{cur.code}</span>
+        </div>
       </div>
 
+      {/* Tarjetas de estadísticas */}
       <div className="grid grid-cols-2 gap-3">
-        <StatCard label="Ingresos" value={stats.ingresos}  icon={TrendingUp}   bgClass="bg-green-500/15"  textClass="text-green-400" />
-        <StatCard label="Gastos"   value={stats.gastos}    icon={TrendingDown} bgClass="bg-red-500/15"    textClass="text-red-400" />
-        <StatCard label="Balance"  value={stats.balance}   icon={Wallet}       bgClass={stats.balance >= 0 ? 'bg-brand-500/15' : 'bg-orange-500/15'} textClass={stats.balance >= 0 ? 'text-brand-500' : 'text-orange-400'} />
-        <StatCard label="Deudas"   value={stats.deudas}    icon={AlertCircle}  bgClass="bg-yellow-500/15" textClass="text-yellow-400" />
+        <StatCard label="Ingresos"  value={stats.ingresos} icon={TrendingUp}   bgClass="bg-green-500/15"  textClass="text-green-400" />
+        <StatCard label="Gastos"    value={stats.gastos}   icon={TrendingDown} bgClass="bg-red-500/15"    textClass="text-red-400" />
+        <StatCard
+          label="Balance"
+          value={stats.balance}
+          icon={Wallet}
+          bgClass={stats.balance >= 0 ? 'bg-brand-500/15' : 'bg-orange-500/15'}
+          textClass={stats.balance >= 0 ? 'text-brand-500' : 'text-orange-400'}
+        />
+        <StatCard label="Deudas pendientes" value={stats.deudas} icon={AlertCircle} bgClass="bg-yellow-500/15" textClass="text-yellow-400" />
       </div>
 
+      {/* Gráfico */}
       <div className="bg-panel rounded-2xl p-4">
-        <p className="text-dim text-sm mb-4">Últimos 30 días</p>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm font-semibold text-ink">Últimos 30 días</p>
+          <div className="flex gap-3">
+            <span className="flex items-center gap-1.5 text-xs text-dim">
+              <span className="w-3 h-0.5 bg-green-400 rounded inline-block" />Ingresos
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-dim">
+              <span className="w-3 h-0.5 bg-red-400 rounded inline-block" />Gastos
+            </span>
+          </div>
+        </div>
         <ResponsiveContainer width="100%" height={180}>
           <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
             <defs>
@@ -115,14 +162,6 @@ export default function Dashboard() {
               fill="url(#gG)" dot={false} activeDot={{ r: 4, fill: '#ef4444', stroke: 'var(--panel)', strokeWidth: 2 }} />
           </AreaChart>
         </ResponsiveContainer>
-        <div className="flex gap-4 mt-1 justify-center">
-          <span className="flex items-center gap-1.5 text-xs text-dim">
-            <span className="w-3 h-0.5 bg-green-400 rounded inline-block" />Ingresos
-          </span>
-          <span className="flex items-center gap-1.5 text-xs text-dim">
-            <span className="w-3 h-0.5 bg-red-400 rounded inline-block" />Gastos
-          </span>
-        </div>
       </div>
     </div>
   )

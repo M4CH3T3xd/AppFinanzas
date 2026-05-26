@@ -3,16 +3,16 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 const CurrencyContext = createContext()
 
 export const CURRENCIES = [
-  { code: 'ARS', symbol: '$',   name: 'Peso Argentino',  flag: '🇦🇷', locale: 'es-AR' },
-  { code: 'USD', symbol: 'US$', name: 'Dólar',           flag: '🇺🇸', locale: 'en-US' },
-  { code: 'CLP', symbol: '$',   name: 'Peso Chileno',    flag: '🇨🇱', locale: 'es-CL' },
-  { code: 'PEN', symbol: 'S/',  name: 'Sol Peruano',     flag: '🇵🇪', locale: 'es-PE' },
+  { code: 'CLP', symbol: '$',   name: 'Peso Chileno',   flag: '🇨🇱', locale: 'es-CL' },
+  { code: 'PEN', symbol: 'S/',  name: 'Sol Peruano',    flag: '🇵🇪', locale: 'es-PE' },
+  { code: 'ARS', symbol: '$',   name: 'Peso Argentino', flag: '🇦🇷', locale: 'es-AR' },
+  { code: 'USD', symbol: 'US$', name: 'Dólar',          flag: '🇺🇸', locale: 'en-US' },
 ]
 
 const CACHE_KEY = 'fx_rates'
-const CACHE_TTL = 3_600_000 // 1 hora
+const CACHE_TTL = 3_600_000
 
-async function fetchRatesFromApi() {
+async function fetchRates() {
   const cached = localStorage.getItem(CACHE_KEY)
   if (cached) {
     const { rates, ts } = JSON.parse(cached)
@@ -26,35 +26,33 @@ async function fetchRatesFromApi() {
       return data.rates
     }
   } catch (_) {}
-  // fallback aproximado si la API falla
   return { ARS: 1050, USD: 1, CLP: 890, PEN: 3.72 }
 }
 
 export function CurrencyProvider({ children }) {
-  const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'ARS')
-  const [rates, setRates] = useState({ ARS: 1, USD: 1, CLP: 1, PEN: 1 })
+  const [currency, setCurrency] = useState(() => localStorage.getItem('currency') || 'CLP')
+  const [rates, setRates] = useState(null)
 
-  useEffect(() => {
-    fetchRatesFromApi().then(setRates)
-  }, [])
+  useEffect(() => { fetchRates().then(setRates) }, [])
+  useEffect(() => { localStorage.setItem('currency', currency) }, [currency])
 
-  useEffect(() => {
-    localStorage.setItem('currency', currency)
+  const format = useCallback((amount) => {
+    if (amount == null) return ''
+    const cur = CURRENCIES.find(c => c.code === currency) ?? CURRENCIES[0]
+    const decimals = ['CLP', 'ARS'].includes(currency) ? 0 : 2
+    return `${cur.symbol}${Math.abs(amount).toLocaleString(cur.locale, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })}`
   }, [currency])
 
-  const format = useCallback((arsAmount) => {
-    if (arsAmount == null) return ''
-    const cur = CURRENCIES.find(c => c.code === currency) ?? CURRENCIES[0]
-    let amount = arsAmount
-    if (currency !== 'ARS' && rates.ARS) {
-      amount = (arsAmount / rates.ARS) * rates[currency]
-    }
-    const decimals = currency === 'ARS' || currency === 'CLP' ? 0 : 2
-    return `${cur.symbol}${amount.toLocaleString(cur.locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`
-  }, [currency, rates])
+  const getCurrency = useCallback(
+    () => CURRENCIES.find(c => c.code === currency) ?? CURRENCIES[0],
+    [currency]
+  )
 
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency, rates, format }}>
+    <CurrencyContext.Provider value={{ currency, setCurrency, rates, format, getCurrency }}>
       {children}
     </CurrencyContext.Provider>
   )

@@ -2,12 +2,13 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, ArrowLeftRight, Target, CreditCard, ShieldCheck, LogOut, Settings } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useCurrency } from '../context/CurrencyContext'
 
 const navItems = [
-  { to: '/',               icon: LayoutDashboard, label: 'Inicio' },
-  { to: '/transacciones',  icon: ArrowLeftRight,  label: 'Movimientos' },
-  { to: '/presupuestos',   icon: Target,          label: 'Presupuestos' },
-  { to: '/deudas',         icon: CreditCard,      label: 'Deudas' },
+  { to: '/',              icon: LayoutDashboard, label: 'Inicio' },
+  { to: '/transacciones', icon: ArrowLeftRight,  label: 'Movimientos' },
+  { to: '/presupuestos',  icon: Target,          label: 'Presupuestos' },
+  { to: '/deudas',        icon: CreditCard,      label: 'Deudas' },
 ]
 
 function SideNavItem({ to, icon: Icon, label, end }) {
@@ -24,8 +25,12 @@ function SideNavItem({ to, icon: Icon, label, end }) {
 }
 
 export default function Layout() {
-  const { isAdmin } = useAuth()
+  const { isAdmin, user } = useAuth()
+  const { getCurrency } = useCurrency()
   const navigate = useNavigate()
+  const cur = getCurrency()
+
+  const initial = user?.email?.[0]?.toUpperCase() ?? '?'
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -37,12 +42,20 @@ export default function Layout() {
 
       {/* ── Sidebar desktop ── */}
       <aside className="hidden md:flex flex-col w-56 bg-panel border-r border-line fixed h-full z-10">
-        <div className="px-4 py-5 font-bold text-xl text-brand-500">💰 Finanzas</div>
+        <div className="px-4 py-5">
+          <span className="font-bold text-xl text-brand-500">💰 Finanzas</span>
+        </div>
         <nav className="flex-1 px-3 space-y-1">
           {navItems.map(item => <SideNavItem key={item.to} {...item} end={item.to === '/'} />)}
           {isAdmin && <SideNavItem to="/admin" icon={ShieldCheck} label="Admin" />}
         </nav>
         <div className="px-3 pb-4 space-y-1">
+          {/* Badge de moneda */}
+          <NavLink to="/configuracion"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-dim hover:text-ink hover:bg-well transition-colors">
+            <span>{cur.flag}</span>
+            <span>{cur.code} · {cur.name}</span>
+          </NavLink>
           <SideNavItem to="/configuracion" icon={Settings} label="Configuración" />
           <button onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-dim hover:text-red-400 hover:bg-well transition-colors w-full">
@@ -58,7 +71,15 @@ export default function Layout() {
         {/* Header móvil */}
         <header className="flex md:hidden items-center justify-between px-4 py-3 bg-panel border-b border-line">
           <span className="font-bold text-lg text-brand-500">💰 Finanzas</span>
+
           <div className="flex items-center gap-1">
+            {/* Badge moneda */}
+            <NavLink to="/configuracion"
+              className="flex items-center gap-1 bg-well px-2.5 py-1.5 rounded-lg text-xs font-medium text-dim hover:text-ink transition-colors mr-1">
+              <span>{cur.flag}</span>
+              <span>{cur.code}</span>
+            </NavLink>
+
             {isAdmin && (
               <NavLink to="/admin" className={({ isActive }) =>
                 `p-2 rounded-lg transition-colors ${isActive ? 'text-brand-500' : 'text-dim hover:text-ink'}`}>
