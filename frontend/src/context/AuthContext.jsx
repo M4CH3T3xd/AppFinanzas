@@ -9,8 +9,13 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   async function fetchRole(userId) {
+    // Cache en sessionStorage — evita query de red en cada recarga
+    const cached = sessionStorage.getItem(`role_${userId}`)
+    if (cached) { setRole(cached); return }
     const { data } = await supabase.from('user_profiles').select('role').eq('id', userId).single()
-    setRole(data?.role ?? 'usuario')
+    const r = data?.role ?? 'usuario'
+    sessionStorage.setItem(`role_${userId}`, r)
+    setRole(r)
   }
 
   useEffect(() => {
@@ -22,8 +27,12 @@ export function AuthProvider({ children }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
-      if (session?.user) await fetchRole(session.user.id)
-      else setRole(null)
+      if (session?.user) {
+        await fetchRole(session.user.id)
+      } else {
+        sessionStorage.clear()
+        setRole(null)
+      }
     })
 
     return () => subscription.unsubscribe()
