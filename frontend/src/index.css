@@ -5,15 +5,17 @@
 /* ── DARK (default) ──────────────────────────────── */
 :root,
 [data-theme="dark"] {
-  --canvas:    #020617;
-  --panel:     #0f172a;
-  --well:      #1e293b;
-  --line:      #1e293b;
-  --ink:       #f1f5f9;
-  --dim:       #64748b;
-  --brand-50:  #f0fdf4;
-  --brand-500: #22c55e;
-  --brand-600: #16a34a;
+  --canvas:    #08080f;
+  --panel:     #111118;
+  --well:      #0d0d16;
+  --line:      #1c1c2e;
+  --ink:       #eaeaf0;
+  --dim:       #5a5a7a;
+  --brand-50:  #ede9fe;
+  --brand-500: #7c6af7;
+  --brand-600: #6b5ce7;
+  --income:    #00e676;
+  --expense:   #ff4d6d;
   color-scheme: dark;
 }
 
@@ -28,6 +30,8 @@
   --brand-50:  #fafafa;
   --brand-500: #e5e5e5;
   --brand-600: #d4d4d4;
+  --income:    #e5e5e5;
+  --expense:   #737373;
   color-scheme: dark;
 }
 
@@ -42,6 +46,8 @@
   --brand-50:  #fdf2f8;
   --brand-500: #ec4899;
   --brand-600: #db2777;
+  --income:    #86efac;
+  --expense:   #fca5a5;
   color-scheme: dark;
 }
 
@@ -53,9 +59,11 @@
   --line:      #e2e8f0;
   --ink:       #0f172a;
   --dim:       #64748b;
-  --brand-50:  #f0fdf4;
-  --brand-500: #16a34a;
-  --brand-600: #15803d;
+  --brand-50:  #ede9fe;
+  --brand-500: #7c6af7;
+  --brand-600: #6b5ce7;
+  --income:    #16a34a;
+  --expense:   #e11d48;
   color-scheme: light;
 }
 
@@ -71,4 +79,12 @@
 
 @layer utilities {
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.toast-enter {
+  animation: toast-in 0.18s ease-out;
 }

@@ -10,6 +10,8 @@ export default {
         line:    'var(--line)',
         ink:     'var(--ink)',
         dim:     'var(--dim)',
+        income:  'var(--income)',
+        expense: 'var(--expense)',
         brand: {
           50:  'var(--brand-50)',
           500: 'var(--brand-500)',

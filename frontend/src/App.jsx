@@ -7,6 +7,8 @@ import Transacciones from './pages/Transacciones'
 import Presupuestos from './pages/Presupuestos'
 import Deudas from './pages/Deudas'
 import Admin from './pages/Admin'
+import Servicios from './pages/Servicios'
+import Metas from './pages/Metas'
 import Configuracion from './pages/Configuracion'
 
 function PrivateRoute({ children }) {
@@ -33,6 +35,8 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="transacciones"  element={<Transacciones />} />
           <Route path="presupuestos"   element={<Presupuestos />} />
+          <Route path="servicios"      element={<Servicios />} />
+          <Route path="metas"          element={<Metas />} />
           <Route path="deudas"         element={<Deudas />} />
           <Route path="configuracion"  element={<Configuracion />} />
           <Route path="admin"          element={<AdminRoute><Admin /></AdminRoute>} />

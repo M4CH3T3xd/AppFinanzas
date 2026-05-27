@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useCurrency } from '../context/CurrencyContext'
 import { Plus, Check, Trash2, Lock } from 'lucide-react'
+import { useToast } from '../context/ToastContext'
 import { format } from 'date-fns'
 import BottomSheet from '../components/BottomSheet'
 
@@ -11,6 +12,7 @@ const EMOJIS = ['💳','🏠','🚗','📱','🎓','🏥','✈️','🍽️','�
 export default function Deudas() {
   const { user } = useAuth()
   const { format: fmt } = useCurrency()
+  const { toast } = useToast()
   const [deudas, setDeudas] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [showEmojis, setShowEmojis] = useState(false)
@@ -35,6 +37,7 @@ export default function Deudas() {
       pagado: false,
       user_id: user.id
     })
+    toast('Deuda guardada')
     setShowForm(false)
     setForm({ descripcion: '', monto: '', tipo: 'debo', vencimiento: '', icono: '💳' })
     loadDeudas()
@@ -42,12 +45,14 @@ export default function Deudas() {
 
   async function togglePagado(id, pagado) {
     await supabase.from('deudas').update({ pagado: !pagado }).eq('id', id)
+    toast(pagado ? 'Marcada como pendiente' : 'Marcada como pagada')
     loadDeudas()
   }
 
   async function handleDelete(id) {
     await supabase.from('deudas').delete().eq('id', id)
     setDeudas(prev => prev.filter(d => d.id !== id))
+    toast('Deuda eliminada', 'warning')
   }
 
   return (

@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, ArrowLeftRight, Target, CreditCard, ShieldCheck, LogOut, Settings } from 'lucide-react'
+import { LayoutDashboard, ArrowLeftRight, Target, CreditCard, Repeat, ShieldCheck, LogOut, Settings } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useCurrency } from '../context/CurrencyContext'
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/transacciones', icon: ArrowLeftRight,  label: 'Movimientos' },
   { to: '/presupuestos',  icon: Target,          label: 'Presupuestos' },
   { to: '/deudas',        icon: CreditCard,      label: 'Deudas' },
+  { to: '/servicios',     icon: Repeat,          label: 'Servicios' },
 ]
 
 function SideNavItem({ to, icon: Icon, label, end }) {
