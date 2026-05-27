@@ -214,7 +214,7 @@ export default function Perfil() {
     if (file.size > 2 * 1024 * 1024) { toast('Imagen muy grande (máx 2MB)', 'error'); return }
     setUploading(true)
     const ext  = file.name.split('.').pop()
-    const path = `${user.id}.${ext}`
+    const path = `${user.id}/avatar.${ext}`
     const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
     if (upErr) { toast('Error al subir imagen', 'error'); setUploading(false); return }
     const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
