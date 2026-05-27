@@ -35,7 +35,9 @@ export default function Layout() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
-    navigate('/login')
+    sessionStorage.clear()
+    localStorage.removeItem('currency')
+    window.location.href = '/login'
   }
 
   return (
