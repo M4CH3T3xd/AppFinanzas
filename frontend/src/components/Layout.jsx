@@ -1,10 +1,7 @@
-import { useState } from 'react'
-import { Outlet, NavLink } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, ArrowLeftRight, Target, CreditCard, Repeat, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useCurrency } from '../context/CurrencyContext'
-import BottomSheet from './BottomSheet'
-import ProfileSheet from './ProfileSheet'
 
 const navItems = [
   { to: '/',              icon: LayoutDashboard, label: 'Inicio' },
@@ -27,22 +24,26 @@ function SideNavItem({ to, icon: Icon, label, end }) {
   )
 }
 
-function ProfileAvatar({ onClick, initial }) {
+function Avatar({ onClick, avatarUrl, initial }) {
   return (
     <button onClick={onClick}
-      className="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold text-base hover:bg-brand-600 transition-colors flex-shrink-0">
-      {initial}
+      className="w-9 h-9 rounded-full overflow-hidden bg-brand-500 flex items-center justify-center text-white font-bold text-base hover:ring-2 hover:ring-brand-500/50 transition-all flex-shrink-0">
+      {avatarUrl
+        ? <img src={avatarUrl} alt="perfil" className="w-full h-full object-cover" />
+        : initial
+      }
     </button>
   )
 }
 
 export default function Layout() {
-  const { isAdmin, user } = useAuth()
+  const { isAdmin, user, profile } = useAuth()
   const { getCurrency } = useCurrency()
-  const [showProfile, setShowProfile] = useState(false)
+  const navigate = useNavigate()
 
-  const cur     = getCurrency()
-  const initial = user?.email?.[0]?.toUpperCase() ?? '?'
+  const cur         = getCurrency()
+  const initial     = (profile?.apodo || profile?.nombre || user?.email || '?')[0].toUpperCase()
+  const displayName = profile?.apodo || profile?.nombre || user?.email?.split('@')[0]
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-canvas overflow-hidden">
@@ -56,16 +57,17 @@ export default function Layout() {
           {navItems.map(item => <SideNavItem key={item.to} {...item} end={item.to === '/'} />)}
           {isAdmin && <SideNavItem to="/admin" icon={ShieldCheck} label="Admin" />}
         </nav>
-
-        {/* Perfil desktop */}
         <div className="px-3 pb-4">
-          <button onClick={() => setShowProfile(true)}
+          <button onClick={() => navigate('/perfil')}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-well transition-colors text-left">
-            <div className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-              {initial}
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-brand-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+              {profile?.avatar_url
+                ? <img src={profile.avatar_url} alt="perfil" className="w-full h-full object-cover" />
+                : initial
+              }
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-ink text-xs font-medium truncate">{user?.email}</p>
+              <p className="text-ink text-xs font-medium truncate">{displayName}</p>
               <p className="text-dim text-xs">{cur.flag} {cur.code}</p>
             </div>
           </button>
@@ -85,7 +87,7 @@ export default function Layout() {
                 <ShieldCheck size={20} />
               </NavLink>
             )}
-            <ProfileAvatar onClick={() => setShowProfile(true)} initial={initial} />
+            <Avatar onClick={() => navigate('/perfil')} avatarUrl={profile?.avatar_url} initial={initial} />
           </div>
         </header>
 
@@ -107,11 +109,6 @@ export default function Layout() {
           ))}
         </nav>
       </div>
-
-      {/* Profile sheet */}
-      <BottomSheet open={showProfile} onClose={() => setShowProfile(false)} title="Mi perfil">
-        <ProfileSheet onClose={() => setShowProfile(false)} />
-      </BottomSheet>
 
     </div>
   )

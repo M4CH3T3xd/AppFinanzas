@@ -10,6 +10,7 @@ import Admin from './pages/Admin'
 import Servicios from './pages/Servicios'
 import Metas from './pages/Metas'
 import Configuracion from './pages/Configuracion'
+import Perfil from './pages/Perfil'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="metas"          element={<Metas />} />
           <Route path="deudas"         element={<Deudas />} />
           <Route path="configuracion"  element={<Configuracion />} />
+          <Route path="perfil"         element={<Perfil />} />
           <Route path="admin"          element={<AdminRoute><Admin /></AdminRoute>} />
         </Route>
       </Routes>
