@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, ArrowLeftRight, Target, CreditCard, Repeat, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useCurrency } from '../context/CurrencyContext'
+import SideDrawer from './SideDrawer'
 
 const navItems = [
   { to: '/',              icon: LayoutDashboard, label: 'Inicio' },
@@ -41,6 +43,7 @@ export default function Layout() {
   const { getCurrency } = useCurrency()
   const navigate = useNavigate()
 
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const cur         = getCurrency()
   const initial     = (profile?.apodo || profile?.nombre || user?.email || '?')[0].toUpperCase()
   const displayName = profile?.apodo || profile?.nombre || user?.email?.split('@')[0]
@@ -58,7 +61,7 @@ export default function Layout() {
           {isAdmin && <SideNavItem to="/admin" icon={ShieldCheck} label="Admin" />}
         </nav>
         <div className="px-3 pb-4">
-          <button onClick={() => navigate('/perfil')}
+          <button onClick={() => setDrawerOpen(true)}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-well transition-colors text-left">
             <div className="w-8 h-8 rounded-full overflow-hidden bg-brand-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
               {profile?.avatar_url
@@ -87,7 +90,7 @@ export default function Layout() {
                 <ShieldCheck size={20} />
               </NavLink>
             )}
-            <Avatar onClick={() => navigate('/perfil')} avatarUrl={profile?.avatar_url} initial={initial} />
+            <Avatar onClick={() => setDrawerOpen(true)} avatarUrl={profile?.avatar_url} initial={initial} />
           </div>
         </header>
 
@@ -110,6 +113,7 @@ export default function Layout() {
         </nav>
       </div>
 
+      <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </div>
   )
 }
