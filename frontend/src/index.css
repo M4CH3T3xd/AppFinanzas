@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  overscroll-behavior: none;
+  touch-action: pan-x pan-y;
+}
+
 /* ── DARK (default) ──────────────────────────────── */
 :root,
 [data-theme="dark"] {

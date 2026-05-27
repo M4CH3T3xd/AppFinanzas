@@ -19,16 +19,28 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
+    // Timeout de seguridad: si algo falla en la red, no quedarse trabado en "Cargando"
+    const timeout = setTimeout(() => setLoading(false), 5000)
+
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) await fetchRole(session.user.id)
+      try {
+        setUser(session?.user ?? null)
+        if (session?.user) await fetchRole(session.user.id)
+      } catch (_) {
+        // Si fetchRole falla (sin red, RLS, etc.) igual salimos del loading
+      } finally {
+        clearTimeout(timeout)
+        setLoading(false)
+      }
+    }).catch(() => {
+      clearTimeout(timeout)
       setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        await fetchRole(session.user.id)
+        await fetchRole(session.user.id).catch(() => {})
       } else {
         sessionStorage.clear()
         setRole(null)
