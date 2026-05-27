@@ -39,7 +39,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-canvas">
+    <div className="flex flex-col md:flex-row h-screen bg-canvas overflow-hidden">
 
       {/* ── Sidebar desktop ── */}
       <aside className="hidden md:flex flex-col w-56 bg-panel border-r border-line fixed h-full z-10">
@@ -67,10 +67,10 @@ export default function Layout() {
       </aside>
 
       {/* ── Área principal ── */}
-      <div className="flex flex-col flex-1 md:ml-56 min-h-screen">
+      <div className="flex flex-col flex-1 md:ml-56 h-full overflow-hidden">
 
         {/* Header móvil */}
-        <header className="flex md:hidden items-center justify-between px-4 py-3 bg-panel border-b border-line">
+        <header className="flex-shrink-0 flex md:hidden items-center justify-between px-4 py-3 bg-panel border-b border-line">
           <span className="font-bold text-lg text-brand-500">💰 Finanzas</span>
 
           <div className="flex items-center gap-1">
@@ -97,12 +97,12 @@ export default function Layout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 w-full max-w-2xl mx-auto md:max-w-none">
+        <main className="flex-1 min-h-0 overflow-y-auto p-4 pb-20 w-full max-w-2xl mx-auto md:max-w-none md:pb-4">
           <Outlet />
         </main>
 
         {/* Bottom nav móvil */}
-        <nav className="flex md:hidden bg-panel border-t border-line safe-bottom">
+        <nav className="flex-shrink-0 flex md:hidden bg-panel border-t border-line" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {navItems.map(({ to, icon: Icon, label }) => (
             <NavLink key={to} to={to} end={to === '/'}
               className={({ isActive }) =>

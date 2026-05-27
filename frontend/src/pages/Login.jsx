@@ -42,16 +42,22 @@ export default function Login() {
   async function handleSignup(e) {
     e.preventDefault()
     setError(''); setLoading(true)
-    const { data, error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { currency } },
+    })
     if (error) {
       setError(error.message)
     } else if (data.user) {
-      await supabase.from('user_profiles').insert({
+      // Intentar crear el perfil — puede fallar si email confirmation está activo (sin sesión todavía)
+      // CurrencyContext lo crea correctamente al primer login usando los metadatos
+      await supabase.from('user_profiles').upsert({
         id: data.user.id,
         email,
         role: 'usuario',
         currency,
-      })
+      }, { onConflict: 'id' })
       localStorage.setItem('currency', currency)
       setSuccess(true)
     }

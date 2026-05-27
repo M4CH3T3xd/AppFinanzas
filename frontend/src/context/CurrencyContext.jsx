@@ -47,10 +47,34 @@ export function CurrencyProvider({ children }) {
         .select('currency')
         .eq('id', session.user.id)
         .single()
-      if (data?.currency) {
-        setCurrencyState(data.currency)
-        localStorage.setItem('currency', data.currency)
+
+      // Moneda elegida durante el registro (guardada en metadatos de Supabase Auth)
+      const metaCurrency = session.user.user_metadata?.currency
+
+      if (!data) {
+        // El perfil no existe todavía (insert falló durante signup por falta de sesión)
+        // Lo creamos ahora que sí hay sesión
+        const currency = metaCurrency ?? localStorage.getItem('currency') ?? 'ARS'
+        await supabase.from('user_profiles').insert({
+          id: session.user.id,
+          email: session.user.email,
+          role: 'usuario',
+          currency,
+        })
+        setCurrencyState(currency)
+        localStorage.setItem('currency', currency)
+        return
       }
+
+      // Si el perfil tiene ARS por defecto pero el usuario eligió otra moneda al registrarse
+      let finalCurrency = data.currency
+      if (metaCurrency && metaCurrency !== 'ARS' && data.currency === 'ARS') {
+        finalCurrency = metaCurrency
+        await supabase.from('user_profiles').update({ currency: finalCurrency }).eq('id', session.user.id)
+      }
+
+      setCurrencyState(finalCurrency)
+      localStorage.setItem('currency', finalCurrency)
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => syncFromProfile(session))
