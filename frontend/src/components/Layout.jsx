@@ -1,8 +1,10 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, ArrowLeftRight, Target, CreditCard, Repeat, ShieldCheck, LogOut, Settings } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import { useState } from 'react'
+import { Outlet, NavLink } from 'react-router-dom'
+import { LayoutDashboard, ArrowLeftRight, Target, CreditCard, Repeat, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useCurrency } from '../context/CurrencyContext'
+import BottomSheet from './BottomSheet'
+import ProfileSheet from './ProfileSheet'
 
 const navItems = [
   { to: '/',              icon: LayoutDashboard, label: 'Inicio' },
@@ -25,20 +27,22 @@ function SideNavItem({ to, icon: Icon, label, end }) {
   )
 }
 
+function ProfileAvatar({ onClick, initial }) {
+  return (
+    <button onClick={onClick}
+      className="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold text-base hover:bg-brand-600 transition-colors flex-shrink-0">
+      {initial}
+    </button>
+  )
+}
+
 export default function Layout() {
   const { isAdmin, user } = useAuth()
   const { getCurrency } = useCurrency()
-  const navigate = useNavigate()
-  const cur = getCurrency()
+  const [showProfile, setShowProfile] = useState(false)
 
+  const cur     = getCurrency()
   const initial = user?.email?.[0]?.toUpperCase() ?? '?'
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    sessionStorage.clear()
-    localStorage.removeItem('currency')
-    window.location.href = '/login'
-  }
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-canvas overflow-hidden">
@@ -52,18 +56,18 @@ export default function Layout() {
           {navItems.map(item => <SideNavItem key={item.to} {...item} end={item.to === '/'} />)}
           {isAdmin && <SideNavItem to="/admin" icon={ShieldCheck} label="Admin" />}
         </nav>
-        <div className="px-3 pb-4 space-y-1">
-          {/* Badge de moneda */}
-          <NavLink to="/configuracion"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-dim hover:text-ink hover:bg-well transition-colors">
-            <span>{cur.flag}</span>
-            <span>{cur.code} · {cur.name}</span>
-          </NavLink>
-          <SideNavItem to="/configuracion" icon={Settings} label="Configuración" />
-          <button onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-dim hover:text-red-400 hover:bg-well transition-colors w-full">
-            <LogOut size={20} />
-            <span>Salir</span>
+
+        {/* Perfil desktop */}
+        <div className="px-3 pb-4">
+          <button onClick={() => setShowProfile(true)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-well transition-colors text-left">
+            <div className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+              {initial}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-ink text-xs font-medium truncate">{user?.email}</p>
+              <p className="text-dim text-xs">{cur.flag} {cur.code}</p>
+            </div>
           </button>
         </div>
       </aside>
@@ -74,28 +78,14 @@ export default function Layout() {
         {/* Header móvil */}
         <header className="flex-shrink-0 flex md:hidden items-center justify-between px-4 py-3 bg-panel border-b border-line">
           <span className="font-bold text-lg text-brand-500">💰 Finanzas</span>
-
-          <div className="flex items-center gap-1">
-            {/* Badge moneda */}
-            <NavLink to="/configuracion"
-              className="flex items-center gap-1 bg-well px-2.5 py-1.5 rounded-lg text-xs font-medium text-dim hover:text-ink transition-colors mr-1">
-              <span>{cur.flag}</span>
-              <span>{cur.code}</span>
-            </NavLink>
-
+          <div className="flex items-center gap-2">
             {isAdmin && (
               <NavLink to="/admin" className={({ isActive }) =>
                 `p-2 rounded-lg transition-colors ${isActive ? 'text-brand-500' : 'text-dim hover:text-ink'}`}>
                 <ShieldCheck size={20} />
               </NavLink>
             )}
-            <NavLink to="/configuracion" className={({ isActive }) =>
-              `p-2 rounded-lg transition-colors ${isActive ? 'text-brand-500' : 'text-dim hover:text-ink'}`}>
-              <Settings size={20} />
-            </NavLink>
-            <button onClick={handleLogout} className="p-2 rounded-lg text-dim hover:text-red-400 transition-colors">
-              <LogOut size={20} />
-            </button>
+            <ProfileAvatar onClick={() => setShowProfile(true)} initial={initial} />
           </div>
         </header>
 
@@ -104,7 +94,8 @@ export default function Layout() {
         </main>
 
         {/* Bottom nav móvil */}
-        <nav className="flex-shrink-0 flex md:hidden bg-panel border-t border-line" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <nav className="flex-shrink-0 flex md:hidden bg-panel border-t border-line"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {navItems.map(({ to, icon: Icon, label }) => (
             <NavLink key={to} to={to} end={to === '/'}
               className={({ isActive }) =>
@@ -116,6 +107,12 @@ export default function Layout() {
           ))}
         </nav>
       </div>
+
+      {/* Profile sheet */}
+      <BottomSheet open={showProfile} onClose={() => setShowProfile(false)} title="Mi perfil">
+        <ProfileSheet onClose={() => setShowProfile(false)} />
+      </BottomSheet>
+
     </div>
   )
 }
