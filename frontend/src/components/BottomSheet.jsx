@@ -27,7 +27,7 @@ export default function BottomSheet({ open, onClose, title, children }) {
               <button onClick={onClose} className="w-7 h-7 rounded-full bg-well flex items-center justify-center text-dim hover:text-ink text-sm">✕</button>
             </div>
           )}
-          <div className="px-5 py-4 pb-8">{children}</div>
+          <div className="px-5 py-4 pb-8">{open && children}</div>
         </div>
       </div>
     </>
