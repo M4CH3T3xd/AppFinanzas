@@ -21,15 +21,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const timeout = setTimeout(() => setLoading(false), 5000)
 
-    supabase.auth.getUser().then(async ({ data: { user }, error }) => {
+    // Carga rápida desde caché local (instantáneo, no bloquea)
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       try {
-        // getUser() valida el token contra el servidor — si expiró o es inválido, user es null
-        if (error || !user) {
-          setUser(null)
-          return
-        }
-        setUser(user)
-        await fetchRole(user.id)
+        setUser(session?.user ?? null)
+        if (session?.user) await fetchRole(session.user.id)
       } catch (_) {}
       finally {
         clearTimeout(timeout)
@@ -39,6 +35,16 @@ export function AuthProvider({ children }) {
       clearTimeout(timeout)
       setLoading(false)
     })
+
+    // Validación en segundo plano: si el token expiró, cierra sesión silenciosamente
+    supabase.auth.getUser().then(({ data: { user }, error }) => {
+      if (error || !user) {
+        setUser(null)
+        setRole(null)
+        sessionStorage.clear()
+        supabase.auth.signOut()
+      }
+    }).catch(() => {})
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
