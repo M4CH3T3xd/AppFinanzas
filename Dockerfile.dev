@@ -1,7 +1,0 @@
-FROM node:20-alpine
-WORKDIR /app
-# Instalar dependencias en la imagen (no en cada arranque)
-COPY frontend/package*.json ./
-RUN npm ci
-EXPOSE 5173
-CMD ["npm", "run", "dev", "--", "--host"]
