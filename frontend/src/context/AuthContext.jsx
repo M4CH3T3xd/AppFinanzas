@@ -33,6 +33,13 @@ export function AuthProvider({ children }) {
     // Carga rápida desde caché local (instantáneo, no bloquea)
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       try {
+        const rememberMe = localStorage.getItem('rememberMe') === 'true'
+        if (session?.user && !rememberMe) {
+          await supabase.auth.signOut()
+          sessionStorage.clear()
+          setUser(null)
+          return
+        }
         setUser(session?.user ?? null)
         if (session?.user) await fetchRole(session.user.id)
       } catch (_) {}

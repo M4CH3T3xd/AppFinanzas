@@ -31,6 +31,7 @@ export default function SideDrawer({ open, onClose }) {
     await supabase.auth.signOut()
     sessionStorage.clear()
     localStorage.removeItem('currency')
+    localStorage.removeItem('rememberMe')
     window.location.href = '/login'
   }
 
