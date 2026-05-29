@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { useToast } from './context/ToastContext'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -18,6 +20,13 @@ function PrivateRoute({ children }) {
   return user ? children : <Navigate to="/login" replace />
 }
 
+// Evita que usuarios logueados vean el login al presionar atrás
+function PublicRoute({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  return user ? <Navigate to="/" replace /> : children
+}
+
 function AdminRoute({ children }) {
   const { user, loading, isAdmin } = useAuth()
   if (loading) return <div className="flex items-center justify-center h-screen text-dim">Cargando...</div>
@@ -26,12 +35,36 @@ function AdminRoute({ children }) {
   return children
 }
 
+// Intercepta el botón atrás de Android cuando no hay más historial en la app
+function BackExitHandler() {
+  const { toast } = useToast()
+  const lastPressRef = useRef(0)
+
+  useEffect(() => {
+    window.history.pushState(null, '', window.location.href)
+
+    const onPopState = () => {
+      const now = Date.now()
+      if (now - lastPressRef.current < 2000) return
+      lastPressRef.current = now
+      window.history.pushState(null, '', window.location.href)
+      toast('Presioná atrás de nuevo para salir', 'warning')
+    }
+
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [toast])
+
+  return null
+}
+
 export default function App() {
   return (
     <AuthProvider>
     <BrowserRouter>
+      <BackExitHandler />
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="transacciones"  element={<Transacciones />} />

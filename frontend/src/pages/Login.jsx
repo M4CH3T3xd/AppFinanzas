@@ -32,7 +32,7 @@ export default function Login() {
     } else {
       if (rememberMe) localStorage.setItem('rememberMe', 'true')
       else localStorage.removeItem('rememberMe')
-      navigate('/')
+      navigate('/', { replace: true })
     }
     setLoading(false)
   }
