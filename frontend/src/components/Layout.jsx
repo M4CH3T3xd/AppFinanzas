@@ -102,7 +102,7 @@ export default function Layout() {
         <nav className="flex-shrink-0 flex md:hidden bg-panel border-t border-line"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {navItems.map(({ to, icon: Icon, label }) => (
-            <NavLink key={to} to={to} end={to === '/'}
+            <NavLink key={to} to={to} end={to === '/'} replace
               className={({ isActive }) =>
                 `flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-colors ${isActive ? 'text-brand-500' : 'text-dim hover:text-ink'}`
               }>

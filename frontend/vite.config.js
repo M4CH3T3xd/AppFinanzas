@@ -17,11 +17,25 @@ export default defineConfig({
       workbox: {
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
+        runtimeCaching: [
+          {
+            // NetworkFirst para navigation: siempre intenta traer index.html fresco
+            // de la red antes de usar cache — evita servir versión stale al reabrir
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'navigation',
+              networkTimeoutSeconds: 3,
+            },
+          },
+        ],
       },
       manifest: {
         name: 'Finanzas Personal',
         short_name: 'Finanzas',
         description: 'Gestión de finanzas personales',
+        start_url: '/',
+        scope: '/',
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',
