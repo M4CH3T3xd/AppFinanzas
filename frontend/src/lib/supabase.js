@@ -1,14 +1,25 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Con "Recordarme" OFF la sesión usa sessionStorage → muere al cerrar la app,
-// evitando el blank screen al reabrir desde task manager.
-// Con "Recordarme" ON usa localStorage → persiste entre cierres.
-const storage = localStorage.getItem('rememberMe') === 'true'
-  ? localStorage
-  : sessionStorage
+// Adaptador dinámico: decide el storage en cada operación según el flag rememberMe.
+// Esto soluciona el bug donde el cliente se inicializaba con sessionStorage ANTES
+// de que el usuario marcara "Recordarme", guardando la sesión en el lugar incorrecto.
+const dynamicStorage = {
+  getItem: (key) => {
+    const store = localStorage.getItem('rememberMe') === 'true' ? localStorage : sessionStorage
+    return store.getItem(key)
+  },
+  setItem: (key, value) => {
+    const store = localStorage.getItem('rememberMe') === 'true' ? localStorage : sessionStorage
+    store.setItem(key, value)
+  },
+  removeItem: (key) => {
+    localStorage.removeItem(key)
+    sessionStorage.removeItem(key)
+  },
+}
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY,
-  { auth: { storage, autoRefreshToken: true, persistSession: true } }
+  { auth: { storage: dynamicStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: true } }
 )

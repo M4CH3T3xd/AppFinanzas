@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext()
@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [role, setRole]       = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const loadingResolvedRef    = useRef(false)
 
   async function fetchRole(userId) {
     const cached = sessionStorage.getItem(`role_${userId}`)
@@ -20,6 +21,11 @@ export function AuthProvider({ children }) {
     sessionStorage.setItem(`role_${userId}`, r)
     setRole(r)
     setProfile({ nombre: data?.nombre ?? null, apodo: data?.apodo ?? null, avatar_url: data?.avatar_url ?? null })
+    // Actualizar last_seen para el indicador de actividad en Admin
+    supabase.from('user_profiles')
+      .update({ last_seen: new Date().toISOString() })
+      .eq('id', userId)
+      .then(() => {})
   }
 
   async function refreshProfile(userId) {
@@ -27,14 +33,26 @@ export function AuthProvider({ children }) {
     await fetchRole(userId)
   }
 
+  async function logout() {
+    await supabase.auth.signOut()
+    sessionStorage.clear()
+    localStorage.removeItem('currency')
+    localStorage.removeItem('rememberMe')
+  }
+
+  function resolveLoading() {
+    if (!loadingResolvedRef.current) {
+      loadingResolvedRef.current = true
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    // Lee la sesión desde el storage configurado en supabase.js
-    // (sessionStorage si no hay rememberMe, localStorage si lo hay)
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null)
       if (session?.user) await fetchRole(session.user.id).catch(() => {})
-      setLoading(false)
-    }).catch(() => setLoading(false))
+      resolveLoading()
+    }).catch(() => resolveLoading())
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
@@ -44,13 +62,15 @@ export function AuthProvider({ children }) {
         sessionStorage.clear()
         setRole(null)
       }
+      // Resolver loading también desde aquí para evitar race condition con OAuth
+      resolveLoading()
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin: role === 'admin', profile, refreshProfile }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin: role === 'admin', profile, refreshProfile, logout }}>
       {children}
     </AuthContext.Provider>
   )

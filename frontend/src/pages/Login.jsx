@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Eye, EyeOff } from 'lucide-react'
@@ -16,6 +16,7 @@ export default function Login() {
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
+  const [animated, setAnimated] = useState(false)
   const navigate = useNavigate()
 
   function switchMode(m) {
@@ -26,12 +27,14 @@ export default function Login() {
   async function handleLogin(e) {
     e.preventDefault()
     setError(''); setLoading(true)
+    // Setear rememberMe ANTES de signInWithPassword para que el adaptador
+    // de storage sepa dónde guardar la sesión en el momento de escribirla
+    if (rememberMe) localStorage.setItem('rememberMe', 'true')
+    else localStorage.removeItem('rememberMe')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError('Email o contraseña incorrectos')
     } else {
-      if (rememberMe) localStorage.setItem('rememberMe', 'true')
-      else localStorage.removeItem('rememberMe')
       navigate('/', { replace: true })
     }
     setLoading(false)
@@ -41,7 +44,7 @@ export default function Login() {
     localStorage.setItem('rememberMe', 'true')
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: window.location.origin + window.location.pathname },
     })
   }
 
@@ -78,21 +81,46 @@ export default function Login() {
     setLoading(false)
   }
 
+  useEffect(() => {
+    if (success) {
+      const t = setTimeout(() => setAnimated(true), 50)
+      return () => clearTimeout(t)
+    }
+  }, [success])
+
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-canvas">
-        <div className="w-full max-w-sm text-center space-y-5">
-          <div className="text-6xl">✅</div>
-          <div>
-            <h2 className="text-xl font-bold text-ink">¡Cuenta creada!</h2>
-            <p className="text-dim text-sm mt-2">
-              Revisá tu email para confirmar tu cuenta antes de ingresar.
+        <div className="w-full max-w-sm text-center space-y-6">
+          <div className={`transition-all duration-500 ease-out ${animated ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
+            <div className="w-24 h-24 rounded-full bg-income/10 border-2 border-income/30 flex items-center justify-center mx-auto">
+              <svg viewBox="0 0 52 52" className="w-12 h-12" fill="none">
+                <circle cx="26" cy="26" r="25" stroke="var(--income)" strokeWidth="2"
+                  className={`transition-all duration-700 delay-100 ${animated ? 'opacity-100' : 'opacity-0'}`}
+                  strokeDasharray="157" strokeDashoffset={animated ? '0' : '157'}
+                  style={{ transition: 'stroke-dashoffset 0.7s ease 0.1s' }}
+                />
+                <path d="M14 27l8 8 16-16" stroke="var(--income)" strokeWidth="3"
+                  strokeLinecap="round" strokeLinejoin="round"
+                  strokeDasharray="34" strokeDashoffset={animated ? '0' : '34'}
+                  style={{ transition: 'stroke-dashoffset 0.5s ease 0.5s' }}
+                />
+              </svg>
+            </div>
+          </div>
+          <div className={`transition-all duration-500 delay-300 ${animated ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+            <h2 className="text-2xl font-bold text-ink">¡Cuenta creada!</h2>
+            <p className="text-dim text-sm mt-3 leading-relaxed">
+              Te enviamos un email de confirmación.<br />
+              Revisá tu bandeja de entrada y hacé clic en el enlace para activar tu cuenta.
             </p>
           </div>
-          <button onClick={() => switchMode('login')}
-            className="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3 rounded-xl transition-colors">
-            Ir al login
-          </button>
+          <div className={`transition-all duration-500 delay-500 ${animated ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+            <button onClick={() => switchMode('login')}
+              className="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3 rounded-xl transition-colors">
+              Ir al login
+            </button>
+          </div>
         </div>
       </div>
     )

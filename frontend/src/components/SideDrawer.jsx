@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useCurrency, CURRENCIES } from '../context/CurrencyContext'
-import { supabase } from '../lib/supabase'
 import { useState } from 'react'
 import { X, User, Settings, ArrowLeftRight, FileDown, LogOut, AlertTriangle, ChevronRight } from 'lucide-react'
 
@@ -14,7 +13,7 @@ const menuItems = [
 
 export default function SideDrawer({ open, onClose }) {
   const navigate  = useNavigate()
-  const { user, profile, isAdmin } = useAuth()
+  const { user, profile, isAdmin, logout } = useAuth()
   const { getCurrency } = useCurrency()
   const [confirmLogout, setConfirmLogout] = useState(false)
 
@@ -28,10 +27,7 @@ export default function SideDrawer({ open, onClose }) {
   }
 
   async function handleLogout() {
-    await supabase.auth.signOut()
-    sessionStorage.clear()
-    localStorage.removeItem('currency')
-    localStorage.removeItem('rememberMe')
+    await logout()
     navigate('/login', { replace: true })
   }
 

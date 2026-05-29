@@ -2,6 +2,20 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Users, TrendingDown, TrendingUp, CreditCard } from 'lucide-react'
 
+function getSessionStatus(lastSeen) {
+  if (!lastSeen) return 'inactive'
+  const diff = (Date.now() - new Date(lastSeen).getTime()) / 1000 / 60 // minutos
+  if (diff < 15) return 'active'
+  if (diff < 120) return 'recent'
+  return 'inactive'
+}
+
+const STATUS_DOT = {
+  active:   { color: 'bg-income',          label: 'Activo ahora' },
+  recent:   { color: 'bg-yellow-400',      label: 'Activo reciente' },
+  inactive: { color: 'bg-dim/40',          label: 'Inactivo' },
+}
+
 export default function Admin() {
   const [usuarios, setUsuarios] = useState([])
   const [seleccionado, setSeleccionado] = useState(null)
@@ -33,13 +47,23 @@ export default function Admin() {
       </div>
 
       <div className="space-y-2">
-        {usuarios.map(u => (
-          <button key={u.id} onClick={() => loadDatosUsuario(u.id)}
-            className={`w-full text-left bg-panel rounded-2xl px-4 py-3 transition-colors border-2 ${seleccionado === u.id ? 'border-brand-500' : 'border-transparent hover:bg-well'}`}>
-            <p className="font-medium text-ink">{u.email}</p>
-            <p className="text-xs text-dim capitalize">{u.role ?? 'usuario'}</p>
-          </button>
-        ))}
+        {usuarios.map(u => {
+          const status = getSessionStatus(u.last_seen)
+          const dot    = STATUS_DOT[status]
+          return (
+            <button key={u.id} onClick={() => loadDatosUsuario(u.id)}
+              className={`w-full text-left bg-panel rounded-2xl px-4 py-3 transition-colors border-2 ${seleccionado === u.id ? 'border-brand-500' : 'border-transparent hover:bg-well'}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-medium text-ink truncate">{u.email}</p>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <div className={`w-2 h-2 rounded-full ${dot.color} ${status === 'active' ? 'animate-pulse' : ''}`} />
+                  <span className="text-xs text-dim">{dot.label}</span>
+                </div>
+              </div>
+              <p className="text-xs text-dim capitalize mt-0.5">{u.role ?? 'usuario'}</p>
+            </button>
+          )
+        })}
         {usuarios.length === 0 && <p className="text-center text-dim py-8">Sin usuarios registrados</p>}
       </div>
 
