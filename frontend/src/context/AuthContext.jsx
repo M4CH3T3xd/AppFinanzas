@@ -28,39 +28,13 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    const timeout = setTimeout(() => setLoading(false), 5000)
-
-    // Carga rápida desde caché local (instantáneo, no bloquea)
+    // Lee la sesión desde el storage configurado en supabase.js
+    // (sessionStorage si no hay rememberMe, localStorage si lo hay)
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      try {
-        const rememberMe = localStorage.getItem('rememberMe') === 'true'
-        if (session?.user && !rememberMe) {
-          await supabase.auth.signOut()
-          sessionStorage.clear()
-          setUser(null)
-          return
-        }
-        setUser(session?.user ?? null)
-        if (session?.user) await fetchRole(session.user.id)
-      } catch (_) {}
-      finally {
-        clearTimeout(timeout)
-        setLoading(false)
-      }
-    }).catch(() => {
-      clearTimeout(timeout)
+      setUser(session?.user ?? null)
+      if (session?.user) await fetchRole(session.user.id).catch(() => {})
       setLoading(false)
-    })
-
-    // Validación en segundo plano: si el token expiró, cierra sesión silenciosamente
-    supabase.auth.getUser().then(({ data: { user }, error }) => {
-      if (error || !user) {
-        setUser(null)
-        setRole(null)
-        sessionStorage.clear()
-        supabase.auth.signOut()
-      }
-    }).catch(() => {})
+    }).catch(() => setLoading(false))
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
