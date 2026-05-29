@@ -1,5 +1,5 @@
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { LogOut, X, AlertTriangle, ArrowLeft } from 'lucide-react'
 import Layout from './components/Layout'
@@ -40,36 +40,18 @@ function BackExitHandler() {
   const navigate         = useNavigate()
   const location         = useLocation()
   const [showDialog, setShowDialog] = useState(false)
-  const ignoringNextRef  = useRef(false)
-
-  // Empujar una entrada centinela para que el primer "atrás" sea interceptado
-  useEffect(() => {
-    window.history.pushState({ sentinel: true }, '')
-  }, [])
 
   useEffect(() => {
     const onPopState = () => {
-      // Si el flag está activo, ignorar este evento (es el "Salir" real)
-      if (ignoringNextRef.current) {
-        ignoringNextRef.current = false
-        return
-      }
+      if (!user) return
 
-      if (!user) {
-        // Sin sesión: re-push para no salir de la app desde el login
-        window.history.pushState({ sentinel: true }, '')
-        return
-      }
-
-      // Dentro de la app: si no estamos en el Dashboard, volver al Dashboard
+      // En sub-páginas: volver al Dashboard (replace para no acumular historial)
       if (location.pathname !== '/') {
-        window.history.pushState({ sentinel: true }, '')
-        navigate('/', { replace: false })
+        navigate('/', { replace: true })
         return
       }
 
       // En el Dashboard: mostrar diálogo de salida
-      window.history.pushState({ sentinel: true }, '')
       setShowDialog(true)
     }
 
@@ -84,10 +66,8 @@ function BackExitHandler() {
   }
 
   function handleSalir() {
+    // Cerrar el diálogo y dejar que el sistema cierre/minimice la PWA
     setShowDialog(false)
-    // Ignorar el próximo popstate y dejar que el browser cierre la PWA
-    ignoringNextRef.current = true
-    window.history.go(-1)
   }
 
   function handleCancelar() {
