@@ -42,6 +42,7 @@ export default function Login() {
 
   async function handleGoogleLogin() {
     localStorage.setItem('rememberMe', 'true')
+    localStorage.setItem('google_oauth_initiated', 'true')
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + window.location.pathname },

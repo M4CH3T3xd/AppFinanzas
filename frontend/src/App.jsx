@@ -2,6 +2,7 @@ import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'r
 import { useEffect, useState, useRef } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { LogOut, X, AlertTriangle, ArrowLeft } from 'lucide-react'
+import OnboardingSetup from './components/OnboardingSetup'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -42,6 +43,7 @@ function BackExitHandler() {
   const [showDialog, setShowDialog] = useState(false)
   const sentinelRef      = useRef(false)
   const restoringRef     = useRef(false)
+  const allowExitRef     = useRef(false)
 
   // Ignorar popstate los 300ms después de volver del fondo (bfcache race condition)
   useEffect(() => {
@@ -57,6 +59,7 @@ function BackExitHandler() {
 
   // Push sentinel solo al llegar al Dashboard — nunca al montar ni en tabs
   useEffect(() => {
+    if (allowExitRef.current) return
     if (location.pathname === '/' && user && !sentinelRef.current) {
       window.history.pushState({ sentinel: true }, '')
       sentinelRef.current = true
@@ -70,6 +73,11 @@ function BackExitHandler() {
     const onPopState = () => {
       if (restoringRef.current) return
       if (!user) return
+      // Salir fue presionado: dejar que el browser cierre/minimice la app
+      if (allowExitRef.current) {
+        allowExitRef.current = false
+        return
+      }
 
       if (location.pathname !== '/') {
         navigate('/', { replace: true })
@@ -95,10 +103,14 @@ function BackExitHandler() {
 
   function handleSalir() {
     setShowDialog(false)
+    sentinelRef.current = false
+    allowExitRef.current = true
+    window.history.go(-1)  // pop el sentinel → Android cierra/minimiza la PWA
   }
 
   function handleCancelar() {
     setShowDialog(false)
+    // Sentinel ya fue re-pusheado cuando se abrió el diálogo, no hace falta volver a pushear
   }
 
   if (!showDialog) return null
@@ -145,6 +157,11 @@ function BackExitHandler() {
   )
 }
 
+function OnboardingGate() {
+  const { needsOnboarding } = useAuth()
+  return needsOnboarding ? <OnboardingSetup /> : null
+}
+
 export default function App() {
   // Forzar reload cuando Chrome restaura la página desde bfcache (back-forward cache)
   // Evita la pantalla en blanco al volver del fondo en Android PWA
@@ -157,6 +174,7 @@ export default function App() {
   return (
     <AuthProvider>
     <HashRouter>
+      <OnboardingGate />
       <BackExitHandler />
       <Routes>
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
