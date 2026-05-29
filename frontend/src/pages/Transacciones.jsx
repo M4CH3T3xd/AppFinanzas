@@ -330,7 +330,7 @@ export default function Transacciones() {
           {/* Monto */}
           <input type="number" placeholder="0.00" value={form.monto}
             onChange={e => setForm(f => ({ ...f, monto: e.target.value }))}
-            required step="0.01" min="0" autoFocus
+            required step="0.01" min="0"
             className="w-full bg-well border border-line rounded-xl px-4 py-3 text-ink text-2xl font-bold text-center focus:outline-none focus:border-brand-500" />
 
           {/* Categorías — chips con icono */}
@@ -351,7 +351,7 @@ export default function Transacciones() {
             {showNewCat && (
               <div className="mt-3 bg-well border border-line rounded-xl p-3 space-y-3">
                 <input type="text" placeholder="Nombre de la categoría" value={newCatNombre}
-                  onChange={e => setNewCatNombre(e.target.value)} autoFocus
+                  onChange={e => setNewCatNombre(e.target.value)}
                   className="w-full bg-panel border border-line rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-brand-500" />
 
                 <div>

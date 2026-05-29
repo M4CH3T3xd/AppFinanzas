@@ -167,7 +167,7 @@ export default function Metas() {
           </div>
 
           <input type="text" placeholder="Nombre (ej: Vacaciones, Auto…)" value={form.nombre}
-            onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} required autoFocus
+            onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} required
             className="w-full bg-well border border-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-500" />
 
           <input type="number" placeholder="Monto objetivo" value={form.monto_objetivo}
@@ -192,7 +192,7 @@ export default function Metas() {
       <BottomSheet open={!!showAporte} onClose={() => setShowAporte(null)} title={`Aportar a ${showAporte?.nombre}`}>
         <div className="space-y-3">
           <input type="number" placeholder="Monto a aportar" value={aporteVal}
-            onChange={e => setAporteVal(e.target.value)} step="0.01" min="0" autoFocus
+            onChange={e => setAporteVal(e.target.value)} step="0.01" min="0"
             className="w-full bg-well border border-line rounded-xl px-4 py-2.5 text-ink text-lg font-semibold focus:outline-none focus:border-brand-500" />
           {showAporte && (
             <p className="text-xs text-dim text-center">

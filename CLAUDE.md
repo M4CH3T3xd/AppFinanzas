@@ -1,37 +1,43 @@
 # Finanzas App — Contexto del proyecto
 
 ## Stack
-- **Frontend**: React 18 + Vite + Tailwind CSS
-- **Backend**: Supabase (Postgres + Auth + RLS)
-- **Dev**: Docker (Dockerfile.dev + docker-compose.yml)
-- **Deploy**: Docker en local, puerto 5173
+- **Frontend**: React 18 + Vite + Tailwind CSS + PWA (vite-plugin-pwa)
+- **Backend**: Supabase (Postgres + Auth + RLS + Storage)
+- **Dev local**: Node.js 18+ — `cd frontend && npm run dev` (puerto 5173)
+- **Deploy**: Vercel — push a `main` redespliega automáticamente
 
-## Arrancar el proyecto
+## Arrancar el proyecto (local)
 ```bash
-docker compose up --build   # primera vez o después de cambiar dependencias
-docker compose restart      # para aplicar cambios de código (hot reload via volumen)
+cd frontend
+npm install       # primera vez o después de cambiar dependencias
+npm run dev       # http://localhost:5173 con hot reload
 ```
-El frontend vive en `frontend/`. El `.env` va en la raíz del proyecto (docker-compose lo inyecta).
+El frontend vive en `frontend/`. El `.env` va en `frontend/.env` para dev local (Vercel usa variables de entorno configuradas en el dashboard).
 
-## Variables de entorno (.env en la raíz)
+## Variables de entorno (`frontend/.env` para dev local)
 ```
 VITE_SUPABASE_URL=https://qhfyuirsdplhvgzvjwrx.supabase.co
 VITE_SUPABASE_ANON_KEY=sb_publishable_...
 ```
+En Vercel estas variables están cargadas en el dashboard del proyecto.
 
 ## Estructura de carpetas
 ```
-finanzas-app/
+AppFinanzas/
 ├── frontend/
-│   └── src/
-│       ├── context/          AuthContext, CurrencyContext, ThemeContext, ToastContext
-│       ├── hooks/            useAuth
-│       ├── lib/              supabase.js, categoryMeta.js
-│       ├── pages/            Dashboard, Transacciones, Presupuestos, Deudas, Servicios, Metas, Login, Configuracion, Admin
-│       └── components/       Layout, BottomSheet
-├── docker-compose.yml
-├── Dockerfile.dev
-└── .env                      (no commitear, está en .gitignore)
+│   ├── public/               icon-192.png, icon-512.png (PWA)
+│   ├── src/
+│   │   ├── context/          AuthContext, CurrencyContext, ThemeContext, ToastContext
+│   │   ├── hooks/            useAuth
+│   │   ├── lib/              supabase.js, categoryMeta.js
+│   │   ├── pages/            Dashboard, Transacciones, Presupuestos, Deudas, Servicios,
+│   │   │                     Metas, Login, Configuracion, Admin, Perfil
+│   │   └── components/       Layout, BottomSheet, ProfileSheet, SideDrawer
+│   ├── package.json
+│   └── vite.config.js
+├── CLAUDE.md
+├── SETUP.md
+└── frontend/.env             (no commitear, está en .gitignore)
 ```
 
 ## Base de datos Supabase — tablas
@@ -142,8 +148,8 @@ $$;
 - **Formulario de transacciones**: tipo → monto (grande, centrado) → chips de categoría → detalles colapsables.
 
 ## Próximas features pendientes
-- [ ] Conversor de moneda de referencia en Configuración
+- [x] Conversor de moneda de referencia en Configuración
+- [x] Exportar datos (PDF del mes desde ProfileSheet)
 - [ ] Configuración: poder cambiar la moneda base con advertencia
-- [ ] Exportar datos (CSV o PDF)
 - [ ] Notificaciones de vencimiento de servicios
 - [ ] Estadísticas históricas (comparativa multi-mes)

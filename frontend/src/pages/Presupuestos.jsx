@@ -231,7 +231,7 @@ export default function Presupuestos() {
       <BottomSheet open={showForm} onClose={() => setShowForm(false)} title="Nueva categoría">
         <form onSubmit={handleAdd} className="space-y-3">
           <input type="text" placeholder="Nombre (ej: Comida, Alquiler…)" value={form.categoria}
-            onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))} required autoFocus
+            onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))} required
             className="w-full bg-well border border-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-500" />
           <div>
             <label className="text-xs text-dim mb-1 block">Límite mensual (opcional)</label>

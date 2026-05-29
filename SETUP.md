@@ -5,12 +5,9 @@
 | Herramienta | Descarga | Para qué |
 |---|---|---|
 | **Git** | https://git-scm.com/download/win | Clonar y versionar el repo |
-| **Docker Desktop** | https://www.docker.com/products/docker-desktop | Correr el frontend en contenedor |
+| **Node.js 18+** | https://nodejs.org | Correr el frontend localmente |
 | **VS Code** (opcional) | https://code.visualstudio.com | Editor de código |
 | **Claude Code** (opcional) | `npm install -g @anthropic-ai/claude-code` | Asistente IA en terminal |
-
-> Node.js no es necesario para desarrollo — Docker lo maneja internamente.
-> Si querés correr `npm` localmente (no en Docker), instalá Node.js 18+.
 
 ---
 
@@ -25,7 +22,7 @@ cd AppFinanzas
 
 ### 2. Crear el archivo `.env`
 
-En la raíz del proyecto (junto a `docker-compose.yml`), crear un archivo llamado `.env`:
+Dentro de la carpeta `frontend/`, crear un archivo llamado `.env`:
 
 ```env
 VITE_SUPABASE_URL=https://qhfyuirsdplhvgzvjwrx.supabase.co
@@ -34,25 +31,17 @@ VITE_SUPABASE_ANON_KEY=<pedile la key a martin o buscala en Supabase Dashboard �
 
 > Este archivo **no está en git** (está en `.gitignore`). Hay que crearlo a mano cada vez.
 
-### 3. Levantar la app
+### 3. Instalar dependencias y levantar la app
 
 ```bash
-# Primera vez (construye la imagen con todas las dependencias)
-docker compose up --build
-
-# Veces siguientes (más rápido, sin rebuild)
-docker compose up
+cd frontend
+npm install        # solo la primera vez o tras cambiar dependencias
+npm run dev        # http://localhost:5173 con hot reload
 ```
-
-La app queda disponible en: **http://localhost:5173**
-
-El frontend tiene **hot reload** — los cambios en archivos se reflejan automáticamente sin reiniciar.
 
 ### 4. Detener la app
 
-```bash
-docker compose down
-```
+`Ctrl + C` en la terminal.
 
 ---
 
@@ -60,24 +49,24 @@ docker compose down
 
 ```bash
 git pull                    # Traer cambios del repo
-docker compose up           # Levantar la app
-# ... hacer cambios en frontend/src/ ...
+cd frontend && npm run dev  # Levantar la app
+# ... hacer cambios en src/ ...
 git add <archivos>
 git commit -m "descripción"
-git push                    # Vercel redespliega automáticamente
+git push                    # Vercel redespliega automáticamente en ~1 min
 ```
 
 ---
 
 ## Si algo falla
 
-**`docker: command not found`** → Docker Desktop no está corriendo. Abrirlo desde el menú de inicio.
+**`npm: command not found`** → Node.js no está instalado o no está en el PATH. Reinstalar desde nodejs.org.
 
-**Puerto 5173 ocupado** → Cambiar en `docker-compose.yml` el mapeo de puertos: `"5174:5173"`.
+**`npm install` falla** → Borrar `frontend/node_modules` y `frontend/package-lock.json` y volver a correr `npm install`.
 
-**`npm ci` falla en el build** → Ejecutar localmente `npm install --package-lock-only` dentro de `frontend/` y volver a hacer `docker compose up --build`.
+**Puerto 5173 ocupado** → Cambiar en `frontend/vite.config.js`: agregar `server: { port: 5174 }`.
 
-**Cambios no se reflejan** → Verificar que el volumen esté montado. Si no, `docker compose down -v && docker compose up --build`.
+**Variables de entorno no cargadas** → Verificar que el archivo `.env` esté dentro de `frontend/` (no en la raíz del proyecto).
 
 ---
 
@@ -86,3 +75,4 @@ git push                    # Vercel redespliega automáticamente
 URL pública (Vercel): **https://app-finanzas-fawn.vercel.app**
 
 Los cambios pusheados a `main` se despliegan automáticamente en ~1 minuto.
+Las variables de entorno de producción están configuradas en el dashboard de Vercel.

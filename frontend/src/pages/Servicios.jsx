@@ -210,7 +210,7 @@ export default function Servicios() {
           </div>
 
           <input type="text" placeholder="Nombre (ej: Netflix, Luz, Gimnasio…)" value={form.nombre}
-            onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} required autoFocus
+            onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} required
             className="w-full bg-well border border-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-500" />
 
           <input type="number" placeholder="Monto mensual" value={form.monto}
