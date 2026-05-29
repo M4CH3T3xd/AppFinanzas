@@ -1,5 +1,5 @@
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { LogOut, X, AlertTriangle, ArrowLeft } from 'lucide-react'
 import Layout from './components/Layout'
@@ -40,18 +40,46 @@ function BackExitHandler() {
   const navigate         = useNavigate()
   const location         = useLocation()
   const [showDialog, setShowDialog] = useState(false)
+  const sentinelRef      = useRef(false)
+  const restoringRef     = useRef(false)
+
+  // Ignorar popstate los 300ms después de volver del fondo (bfcache race condition)
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        restoringRef.current = true
+        setTimeout(() => { restoringRef.current = false }, 300)
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [])
+
+  // Push sentinel solo al llegar al Dashboard — nunca al montar ni en tabs
+  useEffect(() => {
+    if (location.pathname === '/' && user && !sentinelRef.current) {
+      window.history.pushState({ sentinel: true }, '')
+      sentinelRef.current = true
+    }
+    if (location.pathname !== '/') {
+      sentinelRef.current = false
+    }
+  }, [location.pathname, user])
 
   useEffect(() => {
     const onPopState = () => {
+      if (restoringRef.current) return
       if (!user) return
 
-      // En sub-páginas: volver al Dashboard (replace para no acumular historial)
       if (location.pathname !== '/') {
         navigate('/', { replace: true })
+        sentinelRef.current = false
         return
       }
 
-      // En el Dashboard: mostrar diálogo de salida
+      // En Dashboard: re-push sentinel para el próximo back, luego mostrar diálogo
+      window.history.pushState({ sentinel: true }, '')
+      sentinelRef.current = true
       setShowDialog(true)
     }
 
@@ -66,7 +94,6 @@ function BackExitHandler() {
   }
 
   function handleSalir() {
-    // Cerrar el diálogo y dejar que el sistema cierre/minimice la PWA
     setShowDialog(false)
   }
 
@@ -119,6 +146,14 @@ function BackExitHandler() {
 }
 
 export default function App() {
+  // Forzar reload cuando Chrome restaura la página desde bfcache (back-forward cache)
+  // Evita la pantalla en blanco al volver del fondo en Android PWA
+  useEffect(() => {
+    const onPageShow = (e) => { if (e.persisted) window.location.reload() }
+    window.addEventListener('pageshow', onPageShow)
+    return () => window.removeEventListener('pageshow', onPageShow)
+  }, [])
+
   return (
     <AuthProvider>
     <HashRouter>
