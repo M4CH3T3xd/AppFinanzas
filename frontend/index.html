@@ -13,6 +13,79 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- Fallback: si React no arranca en 5s, mostrar botón de refresco -->
+    <div id="sw-fallback" style="
+      display: none;
+      position: fixed; inset: 0;
+      background: #08080f;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 32px;
+      font-family: system-ui, sans-serif;
+      text-align: center;
+      z-index: 9999;
+    ">
+      <div style="font-size: 48px;">⚠️</div>
+      <div>
+        <p style="color: #eaeaf0; font-size: 18px; font-weight: 600; margin: 0 0 8px;">La app tardó más de lo normal</p>
+        <p style="color: #5a5a7a; font-size: 14px; margin: 0;">Puede haber una actualización pendiente</p>
+      </div>
+      <button onclick="refreshPWA()" style="
+        background: #7c6af7;
+        color: white;
+        border: none;
+        border-radius: 14px;
+        padding: 14px 32px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        max-width: 280px;
+      ">Actualizar y reiniciar</button>
+      <p style="color: #5a5a7a; font-size: 12px; margin: 0;">Esto borra el caché y recarga la app</p>
+    </div>
+
+    <script>
+      // Mostrar fallback si React no monta nada en 5 segundos
+      var swTimer = setTimeout(function() {
+        var root = document.getElementById('root')
+        if (!root || !root.hasChildNodes()) {
+          document.getElementById('sw-fallback').style.display = 'flex'
+        }
+      }, 5000)
+
+      // Cuando React monta, cancelar el timer
+      var observer = new MutationObserver(function() {
+        var root = document.getElementById('root')
+        if (root && root.hasChildNodes()) {
+          clearTimeout(swTimer)
+          observer.disconnect()
+        }
+      })
+      observer.observe(document.getElementById('root'), { childList: true })
+
+      function refreshPWA() {
+        var btn = document.querySelector('#sw-fallback button')
+        btn.textContent = 'Limpiando caché...'
+        btn.disabled = true
+        Promise.all([
+          navigator.serviceWorker
+            ? navigator.serviceWorker.getRegistrations().then(function(regs) {
+                return Promise.all(regs.map(function(r) { return r.unregister() }))
+              })
+            : Promise.resolve(),
+          caches.keys().then(function(names) {
+            return Promise.all(names.map(function(n) { return caches.delete(n) }))
+          })
+        ]).then(function() {
+          window.location.reload(true)
+        })
+      }
+    </script>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
