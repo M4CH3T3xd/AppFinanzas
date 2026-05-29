@@ -169,7 +169,7 @@ export default function Dashboard() {
       {(totalServicios > 0 || totalDeudas > 0) && (
         <div className="grid grid-cols-2 gap-3">
           {totalServicios > 0 && (
-            <button onClick={() => navigate('/servicios')}
+            <button onClick={() => navigate('/servicios', { replace: true })}
               className="bg-panel border border-line rounded-2xl p-4 text-left hover:border-brand-500/40 transition-colors">
               <div className="flex items-center gap-1.5 mb-2">
                 <Repeat size={14} className="text-brand-500" />
@@ -180,7 +180,7 @@ export default function Dashboard() {
             </button>
           )}
           {totalDeudas > 0 && (
-            <button onClick={() => navigate('/deudas')}
+            <button onClick={() => navigate('/deudas', { replace: true })}
               className="bg-panel border border-line rounded-2xl p-4 text-left hover:border-expense/40 transition-colors">
               <div className="flex items-center gap-1.5 mb-2">
                 <AlertCircle size={14} className="text-expense" />
@@ -201,7 +201,7 @@ export default function Dashboard() {
               <Target size={15} className="text-brand-500" />
               <p className="text-sm font-semibold text-ink">Metas de ahorro</p>
             </div>
-            <button onClick={() => navigate('/metas')} className="text-xs text-dim hover:text-ink flex items-center gap-1">
+            <button onClick={() => navigate('/metas', { replace: true })} className="text-xs text-dim hover:text-ink flex items-center gap-1">
               Ver todas <ArrowRight size={12} />
             </button>
           </div>
@@ -233,7 +233,7 @@ export default function Dashboard() {
         <div className="bg-panel rounded-2xl border border-line p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold text-ink">Últimos movimientos</p>
-            <button onClick={() => navigate('/transacciones')} className="text-xs text-dim hover:text-ink flex items-center gap-1">
+            <button onClick={() => navigate('/transacciones', { replace: true })} className="text-xs text-dim hover:text-ink flex items-center gap-1">
               Ver todos <ArrowRight size={12} />
             </button>
           </div>
@@ -267,7 +267,7 @@ export default function Dashboard() {
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <div className="w-16 h-16 rounded-full bg-well flex items-center justify-center text-2xl">💰</div>
           <p className="text-dim text-sm text-center">Aún no hay movimientos este mes.<br/>Agregá tu primer ingreso o gasto.</p>
-          <button onClick={() => navigate('/transacciones')}
+          <button onClick={() => navigate('/transacciones', { replace: true })}
             className="mt-1 bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors">
             Agregar movimiento
           </button>

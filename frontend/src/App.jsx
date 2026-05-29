@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect, useRef } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { useToast } from './context/ToastContext'
@@ -35,22 +35,17 @@ function AdminRoute({ children }) {
   return children
 }
 
-// Intercepta el botón atrás de Android cuando no hay más historial en la app
 function BackExitHandler() {
   const { toast } = useToast()
   const lastPressRef = useRef(0)
 
   useEffect(() => {
-    window.history.pushState(null, '', window.location.href)
-
     const onPopState = () => {
       const now = Date.now()
       if (now - lastPressRef.current < 2000) return
       lastPressRef.current = now
-      window.history.pushState(null, '', window.location.href)
       toast('Presioná atrás de nuevo para salir', 'warning')
     }
-
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [toast])
@@ -61,7 +56,7 @@ function BackExitHandler() {
 export default function App() {
   return (
     <AuthProvider>
-    <BrowserRouter>
+    <HashRouter>
       <BackExitHandler />
       <Routes>
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
@@ -78,7 +73,7 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
     </AuthProvider>
   )
 }

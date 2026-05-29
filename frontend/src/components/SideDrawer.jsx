@@ -24,7 +24,7 @@ export default function SideDrawer({ open, onClose }) {
 
   function go(to) {
     onClose()
-    navigate(to)
+    navigate(to, { replace: true })
   }
 
   async function handleLogout() {
@@ -32,7 +32,7 @@ export default function SideDrawer({ open, onClose }) {
     sessionStorage.clear()
     localStorage.removeItem('currency')
     localStorage.removeItem('rememberMe')
-    window.location.href = '/login'
+    navigate('/login', { replace: true })
   }
 
   return (
