@@ -43,6 +43,7 @@ export default function App() {
           <Route path="perfil"         element={<Perfil />} />
           <Route path="admin"          element={<AdminRoute><Admin /></AdminRoute>} />
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
     </AuthProvider>

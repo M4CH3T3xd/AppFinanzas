@@ -14,6 +14,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
+      workbox: {
+        cleanupOutdatedCaches: true,
+        navigateFallback: '/index.html',
+      },
       manifest: {
         name: 'Finanzas Personal',
         short_name: 'Finanzas',
