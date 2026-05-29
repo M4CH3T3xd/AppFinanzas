@@ -16,6 +16,8 @@ export default defineConfig({
       includeAssets: ['favicon.svg'],
       workbox: {
         cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
       },
       manifest: {
         name: 'Finanzas Personal',
